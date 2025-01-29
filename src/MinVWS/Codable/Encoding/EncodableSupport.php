@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace MinVWS\Codable\Encoding;
 
 use DateTimeInterface;
+use MinVWS\Codable\Decoding\StaticPropertyDecoder;
 use MinVWS\Codable\Exceptions\CodableException;
 use MinVWS\Codable\Reflection\Attributes\CodableCallbacks;
+use MinVWS\Codable\Reflection\Attributes\CodableCoder;
 use MinVWS\Codable\Reflection\Attributes\CodableDateTime;
 use MinVWS\Codable\Reflection\Attributes\CodableIgnore;
 use MinVWS\Codable\Reflection\Attributes\CodableModes;
@@ -31,11 +33,7 @@ trait EncodableSupport
         }
 
         $encodingModes = $property->getAttribute(CodableModes::class)?->encodingModes;
-        if (
-            $container->getContext()->getMode() !== null &&
-            $encodingModes !== null &&
-            !in_array($container->getContext()->getMode(), $encodingModes)
-        ) {
+        if ($encodingModes !== null && !in_array($container->getContext()->getMode(), $encodingModes)) {
             return false;
         }
 
@@ -61,6 +59,16 @@ trait EncodableSupport
 
         $name = $property->getAttribute(CodableName::class)?->name ?? $property->getName();
         $propertyContainer = $container->nestedContainer($name);
+
+        if ($property->hasAttribute(CodableCoder::class)) {
+            $attr = $property->getAttribute(CodableCoder::class);
+            $class = $attr->class;
+            if (is_a($class, StaticPropertyEncoder::class, true)) {
+                $class::encodeProperty($property, $propertyContainer, $attr->args);
+                return;
+            }
+        }
+
         $value = $this->getValueForProperty($property);
 
         if (!$type->isBuiltin() && is_a($type->getName(), DateTimeInterface::class, true)) {

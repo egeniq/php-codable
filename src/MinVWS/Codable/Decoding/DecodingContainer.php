@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace MinVWS\Codable\Decoding;
 
@@ -22,11 +23,12 @@ use MinVWS\Codable\Exceptions\ValueTypeMismatchException;
 use ReflectionClass;
 use ReflectionEnum;
 use ReflectionException;
+use stdClass;
 use StringBackedEnum;
 use UnitEnum;
 use ValueError;
 
-class DecodingContainer implements ArrayAccess
+class DecodingContainer extends stdClass implements ArrayAccess
 {
     public function __construct(
         private readonly mixed $value,
@@ -91,7 +93,7 @@ class DecodingContainer implements ArrayAccess
         return $this->context;
     }
 
-    public function getRoot(): DecodingContainer
+    public function getRoot(): self
     {
         if ($this->getParent() !== null) {
             return $this->getParent()->getRoot();
@@ -100,7 +102,7 @@ class DecodingContainer implements ArrayAccess
         return $this;
     }
 
-    public function getParent(): ?DecodingContainer
+    public function getParent(): ?self
     {
         return $this->parent;
     }
@@ -268,6 +270,9 @@ class DecodingContainer implements ArrayAccess
         }
     }
 
+    /**
+     * @return array<string|int>
+     */
     public function getPath(): array
     {
         if ($this->getParent() !== null && $this->getKey() !== null) {
@@ -1038,7 +1043,7 @@ class DecodingContainer implements ArrayAccess
     /**
      * Returns the nested container for the given key.
      */
-    public function nestedContainer(string|int $key, bool $strict = true, bool $debug = false): DecodingContainer
+    public function nestedContainer(string|int $key, bool $strict = true, bool $debug = false): self
     {
         if (is_object($this->value)) {
             $exists = (!$strict || is_string($key)) && property_exists($this->value, (string)$key);
@@ -1054,7 +1059,7 @@ class DecodingContainer implements ArrayAccess
         return new DecodingContainer($nestedValue, $this->getContext()->createChildContext(), $this, $key, $exists);
     }
 
-    public function nestedContainerForPath(array $path): DecodingContainer
+    public function nestedContainerForPath(array $path): self
     {
         $container = $this;
         foreach ($path as $key) {
@@ -1064,7 +1069,7 @@ class DecodingContainer implements ArrayAccess
         return $container;
     }
 
-    public function nestedContainerForPathIfExists(array $path): ?DecodingContainer
+    public function nestedContainerForPathIfExists(array $path): ?self
     {
         $container = $this;
         foreach ($path as $key) {
@@ -1083,7 +1088,7 @@ class DecodingContainer implements ArrayAccess
         return $this->contains($key);
     }
 
-    public function __get(string $key): DecodingContainer
+    public function __get(string $key): self
     {
         return $this->nestedContainer($key);
     }
@@ -1094,7 +1099,7 @@ class DecodingContainer implements ArrayAccess
         return $this->contains($offset);
     }
 
-    public function offsetGet(mixed $offset): DecodingContainer
+    public function offsetGet(mixed $offset): self
     {
         assert(is_string($offset) || is_int($offset));
         return $this->nestedContainer($offset);

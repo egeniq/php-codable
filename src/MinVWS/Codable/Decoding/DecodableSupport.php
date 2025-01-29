@@ -7,6 +7,7 @@ use MinVWS\Codable\Exceptions\CodableException;
 use MinVWS\Codable\Reflection\Attributes\CodableArray;
 use MinVWS\Codable\Reflection\Attributes\CodableArrayObject;
 use MinVWS\Codable\Reflection\Attributes\CodableCallbacks;
+use MinVWS\Codable\Reflection\Attributes\CodableCoder;
 use MinVWS\Codable\Reflection\Attributes\CodableDateTime;
 use MinVWS\Codable\Reflection\Attributes\CodableIgnore;
 use MinVWS\Codable\Reflection\Attributes\CodableModes;
@@ -53,11 +54,7 @@ trait DecodableSupport
         }
 
         $decodingModes = $property->getAttribute(CodableModes::class)?->decodingModes;
-        if (
-            $container->getContext()->getMode() !== null &&
-            $decodingModes !== null &&
-            !in_array($container->getContext()->getMode(), $decodingModes)
-        ) {
+        if ($decodingModes !== null && !in_array($container->getContext()->getMode(), $decodingModes)) {
             return false;
         }
 
@@ -119,11 +116,31 @@ trait DecodableSupport
     /**
      * @throws CodableException
      */
+    private static function decodeCoderCodableProperty(
+        ReflectionCodableProperty $property,
+        DecodingContainer $propertyContainer
+    ): mixed {
+        $attr = $property->getAttribute(CodableCoder::class);
+        $class = $attr->class;
+        assert(is_a($class, StaticPropertyDecoder::class, true));
+        return $class::decodeProperty($property, $propertyContainer, $attr->args);
+    }
+
+    /**
+     * @throws CodableException
+     */
     private static function decodePresentCodableProperty(
         ReflectionCodableProperty $property,
         DecodingContainer $propertyContainer
     ): mixed {
         $type = $property->getType(ReflectionNamedType::class);
+
+        if ($property->hasAttribute(CodableCoder::class)) {
+            $attr = $property->getAttribute(CodableCoder::class);
+            if (is_a($attr->class, StaticPropertyDecoder::class, true)) {
+                return self::decodeCoderCodableProperty($property, $propertyContainer);
+            }
+        }
 
         if ($type->isBuiltin() && $type->getName() === 'array') {
             return self::decodeArrayCodableProperty($property, $propertyContainer);

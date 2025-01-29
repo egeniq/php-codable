@@ -15,7 +15,7 @@ use MinVWS\Codable\Exceptions\ValueTypeMismatchException;
 use stdClass;
 use UnitEnum;
 
-class EncodingContainer
+class EncodingContainer extends stdClass
 {
     public function __construct(
         private mixed &$value,
