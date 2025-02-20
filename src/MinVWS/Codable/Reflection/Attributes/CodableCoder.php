@@ -16,7 +16,7 @@ readonly class CodableCoder
     /**
      * @param class-string<StaticPropertyDecoder|StaticPropertyEncoder> $class
      */
-    public function __construct(public string $class, ...$args) {
+    public function __construct(public string $class, mixed ...$args) {
         $this->args = $args;
     }
 }

@@ -6,7 +6,7 @@ use Throwable;
 
 class InvalidValueException extends CodablePathException
 {
-    public function __construct(array $path, mixed $value, string $type, Throwable $previous = null)
+    public function __construct(array $path, mixed $value, string $type, ?Throwable $previous = null)
     {
         parent::__construct(
             $path,

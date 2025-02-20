@@ -581,7 +581,7 @@ class DecodingContainer extends stdClass implements ArrayAccess
      *
      * @throws PathNotFoundException | ValueNotFoundException | ValueTypeMismatchException | DateTimeFormatException
      */
-    public function decodeDateTime(string $format = null, DateTimeZone $tz = null, string $class = DateTimeImmutable::class): DateTime|DateTimeImmutable
+    public function decodeDateTime(?string $format = null, ?DateTimeZone $tz = null, string $class = DateTimeImmutable::class): DateTime|DateTimeImmutable
     {
         $string = $this->decodeString();
 
@@ -609,7 +609,7 @@ class DecodingContainer extends stdClass implements ArrayAccess
      *
      * @throws ValueNotFoundException | ValueTypeMismatchException | DateTimeFormatException
      */
-    public function decodeDateTimeIfExists(string $format = null, DateTimeZone $tz = null, string $class = DateTimeImmutable::class): DateTime|DateTimeImmutable|null
+    public function decodeDateTimeIfExists(?string $format = null, ?DateTimeZone $tz = null, string $class = DateTimeImmutable::class): DateTime|DateTimeImmutable|null
     {
         if (!$this->exists()) {
             return null;
@@ -629,7 +629,7 @@ class DecodingContainer extends stdClass implements ArrayAccess
      *
      * @throws ValueTypeMismatchException | DateTimeFormatException
      */
-    public function decodeDateTimeIfPresent(string $format = null, DateTimeZone $tz = null, string $class = DateTimeImmutable::class): DateTime|DateTimeImmutable|null
+    public function decodeDateTimeIfPresent(?string $format = null, ?DateTimeZone $tz = null, string $class = DateTimeImmutable::class): DateTime|DateTimeImmutable|null
     {
         if (!$this->isPresent()) {
             return null;
@@ -941,11 +941,7 @@ class DecodingContainer extends stdClass implements ArrayAccess
             return null;
         }
 
-        try {
-            return $this->decodeArray($iteratorOrElementType, $keyType, $strict);
-        } catch (PathNotFoundException) {
-            return null;
-        }
+        return $this->decodeArray($iteratorOrElementType, $keyType, $strict);
     }
 
     /**
@@ -964,11 +960,7 @@ class DecodingContainer extends stdClass implements ArrayAccess
             return null;
         }
 
-        try {
-            return $this->decodeArray($iteratorOrElementType, $keyType, $strict);
-        } catch (PathNotFoundException | ValueNotFoundException) {
-            return null;
-        }
+        return $this->decodeArray($iteratorOrElementType, $keyType, $strict);
     }
 
     /**

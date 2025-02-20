@@ -33,7 +33,9 @@ trait EncodableSupport
         }
 
         $encodingModes = $property->getAttribute(CodableModes::class)?->encodingModes;
-        if ($encodingModes !== null && !in_array($container->getContext()->getMode(), $encodingModes)) {
+        if ($encodingModes !== null &&
+            $container->getContext()->getMode() !== null &&
+            !in_array($container->getContext()->getMode(), $encodingModes)) {
             return false;
         }
 
@@ -60,11 +62,11 @@ trait EncodableSupport
         $name = $property->getAttribute(CodableName::class)?->name ?? $property->getName();
         $propertyContainer = $container->nestedContainer($name);
 
-        if ($property->hasAttribute(CodableCoder::class)) {
-            $attr = $property->getAttribute(CodableCoder::class);
-            $class = $attr->class;
+        $coderAttr = $property->getAttribute(CodableCoder::class);
+        if ($coderAttr !== null) {
+            $class = $coderAttr->class;
             if (is_a($class, StaticPropertyEncoder::class, true)) {
-                $class::encodeProperty($property, $propertyContainer, $attr->args);
+                $class::encodeProperty($property, $propertyContainer, $coderAttr->args);
                 return;
             }
         }

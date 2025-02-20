@@ -10,7 +10,9 @@ use Generator;
 use MinVWS\Codable\Decoding\Decoder;
 use MinVWS\Codable\Decoding\DecodingContainer;
 use MinVWS\Codable\Exceptions\InvalidValueException;
+use MinVWS\Codable\Exceptions\KeyNotFoundException;
 use MinVWS\Codable\Exceptions\KeyTypeMismatchException;
+use MinVWS\Codable\Exceptions\PathNotFoundException;
 use MinVWS\Codable\Exceptions\ValueNotFoundException;
 use MinVWS\Codable\Exceptions\ValueTypeMismatchException;
 use MinVWS\Tests\Codable\Shared\Fruit;
@@ -511,5 +513,28 @@ class DecodingContainerTest extends TestCase
         $container = $this->decoder->decode(['apple', 'coconut']);
         $this->expectException(InvalidValueException::class);
         $container->decodeArray(Fruit::class);
+    }
+
+    public function testDecodeArrayWithClosureIterator(): void
+    {
+        $container = $this->decoder->decode([(object)['name' => 'example']]);
+        $data = $container->decodeArray(fn (DecodingContainer $item) => $item->name->decodeString());
+        $this->assertEquals(['example'], $data);
+    }
+
+    public function testDecodeArrayWithClosureIteratorPathNotFoundException(): void
+    {
+        $container = $this->decoder->decode([(object)['name' => 'example']]);
+        $this->expectException(PathNotFoundException::class);
+        $container->decodeArray(fn (DecodingContainer $item) => $item->description->decodeString());
+    }
+
+    public function testDecodeArrayIfPresentWithClosureIteratorPathNotFoundException(): void
+    {
+        // previous version didn't throw an exception if we used decodeArrayIfPresent because
+        // it would suppress the exception thrown by the decoding container used in the closure
+        $container = $this->decoder->decode([(object)['name' => 'example']]);
+        $this->expectException(PathNotFoundException::class);
+        $container->decodeArrayIfPresent(fn (DecodingContainer $item) => $item->description->decodeString());
     }
 }

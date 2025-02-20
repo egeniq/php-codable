@@ -54,7 +54,9 @@ trait DecodableSupport
         }
 
         $decodingModes = $property->getAttribute(CodableModes::class)?->decodingModes;
-        if ($decodingModes !== null && !in_array($container->getContext()->getMode(), $decodingModes)) {
+        if ($decodingModes !== null &&
+            $container->getContext()->getMode() !== null &&
+            !in_array($container->getContext()->getMode(), $decodingModes)) {
             return false;
         }
 
@@ -118,9 +120,9 @@ trait DecodableSupport
      */
     private static function decodeCoderCodableProperty(
         ReflectionCodableProperty $property,
-        DecodingContainer $propertyContainer
+        DecodingContainer $propertyContainer,
+        CodableCoder $attr
     ): mixed {
-        $attr = $property->getAttribute(CodableCoder::class);
         $class = $attr->class;
         assert(is_a($class, StaticPropertyDecoder::class, true));
         return $class::decodeProperty($property, $propertyContainer, $attr->args);
@@ -135,10 +137,10 @@ trait DecodableSupport
     ): mixed {
         $type = $property->getType(ReflectionNamedType::class);
 
-        if ($property->hasAttribute(CodableCoder::class)) {
-            $attr = $property->getAttribute(CodableCoder::class);
-            if (is_a($attr->class, StaticPropertyDecoder::class, true)) {
-                return self::decodeCoderCodableProperty($property, $propertyContainer);
+        $coderAttr = $property->getAttribute(CodableCoder::class);
+        if ($coderAttr !== null) {
+            if (is_a($coderAttr->class, StaticPropertyDecoder::class, true)) {
+                return self::decodeCoderCodableProperty($property, $propertyContainer, $coderAttr);
             }
         }
 

@@ -115,7 +115,7 @@ class EncodingContainer extends stdClass
     /**
      * @throws DateTimeFormatException
      */
-    public function encodeDateTime(?DateTimeInterface $value, string $format = null, DateTimeZone $tz = null): void
+    public function encodeDateTime(?DateTimeInterface $value, ?string $format = null, ?DateTimeZone $tz = null): void
     {
         if (is_null($value)) {
             $this->value = $value;
